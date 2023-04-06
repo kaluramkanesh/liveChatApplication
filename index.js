@@ -44,7 +44,7 @@ io.on("connection", function (socket) {
     console.log("A user disconnected");
   });
 });
-app.get("/api/Chat/live", (req, res) => {
+app.get("/", (req, res) => {
   var options = {
     root: path.join(__dirname),
   };
