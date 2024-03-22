@@ -1,182 +1,200 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Real Time Chat Application Kaluram</title>
-    <style>
-      * {
-        padding: 0;
-        margin: 0;
-        box-sizing: border-box;
-      }
 
-      body {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 100vh;
-        background: rgb(223, 243, 243);
-      }
-      section.chat_section {
-        width: 800px;
-        max-width: 90%;
-        background: powderblue;
-        box-shadow: 0 10px 15px -3px rgba(red, green, blue, alpha),
-          0 4px 6px -2px rgba(0, green, blue, alpha);
-      }
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Real Time Chat Application Kaluram</title>
+  <style>
+    * {
+      padding: 0;
+      margin: 0;
+      box-sizing: border-box;
+    }
 
-      .brand {
-        padding: 20px;
-        background: floralwhite;
-        display: flex;
-        align-items: center;
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: rgb(223, 243, 243);
+    }
+
+    section.chat_section {
+      width: 800px;
+      max-width: 90%;
+      background: powderblue;
+      box-shadow: 0 10px 15px -3px rgba(red, green, blue, alpha),
+        0 4px 6px -2px rgba(0, green, blue, alpha);
+    }
+
+    .brand {
+      padding: 20px;
+      background: floralwhite;
+      display: flex;
+      align-items: center;
+    }
+
+    .brand h1 {
+      text-transform: uppercase;
+      font-size: 20px;
+      color: #444;
+      margin-left: 10px;
+    }
+
+    .message_area {
+      height: 500px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      padding-top: 40px;
+    }
+
+    textarea {
+      width: 100%;
+      border: none;
+      padding: 20px;
+      font-size: 16px;
+      outline: none;
+      background: rgb(242, 241, 239);
+    }
+
+    .message {
+      padding: 20px;
+      border-radius: 4px;
+      margin-bottom: 40px;
+      max-width: 300px;
+      position: relative;
+    }
+
+    .incoming {
+      background: darkgrey;
+      color: antiquewhite;
+    }
+
+    .outgoing {
+      background: floralwhite;
+      color: rgb(25, 139, 239);
+      margin-left: auto;
+    }
+
+    .message h4 {
+      position: absolute;
+      top: -20px;
+      left: 0;
+      color: #e41212;
+      font-size: 14px;
+    }
+
+    #currentUser {
+      color: rgb(241, 14, 90);
+      padding-left: 200px;
+      overflow-x: auto;
+    }
+
+    /* Define the green circle */
+    .status-circle {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      background-color: #38E54D;
+      border-radius: 50%;
+      margin-left: 5px;
+      /* Adjust the spacing between the text and the circle */
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.1/socket.io.js"></script>
+</head>
+
+<body>
+  <section class="chat_section">
+    <div class="brand">
+    
+      <i class="fas fa-comment" style="font-size: 48px; color: rgb(0, 208, 255)"></i>
+      <h1>Design By KALURAM</h1>
+     
+      <h2 id="currentUser"></h2>
+
+    </div>
+    <div class="message_area"></div>
+    <div>
+      <textarea id="textarea" cols="30" rows="1" placeholder="Write a message"></textarea>
+    </div>
+  </section>
+  <script>
+    var socket = io();
+    let value;
+    let textarea = document.querySelector("#textarea");
+    let messageArea = document.querySelector(".message_area");
+
+    do {
+      value = prompt("Please enter your name");
+      // Check if user entered a value
+      if (value !== null && value !== "") {
+        // Set value in localStorage
+        localStorage.setItem("username", value);
+      } else {
+        console.log("No name entered.");
       }
-      .brand h1 {
-        text-transform: uppercase;
-        font-size: 20px;
-        color: #444;
-        margin-left: 10px;
+      socket.emit("currentUser", value)
+    } while (!value);
+    // socket.emit("userName",value)
+    function setUserName() {
+      if (document.getElementById("user").value == "") {
+        alert("Please enter your name");
+      } else {
+        socket.emit("setUserName", document.getElementById("user").value);
       }
-      .message_area {
-        height: 500px;
-        padding: 16px;
-        display: flex;
-        flex-direction: column;
-        overflow-y: auto;
-        padding-top: 40px;
+    }
+    textarea.addEventListener("keyup", (event) => {
+      if (event.key == "Enter") {
+        sendMessage(event.target.value);
       }
-      textarea {
-        width: 100%;
-        border: none;
-        padding: 20px;
-        font-size: 16px;
-        outline: none;
-        background: rgb(242, 241, 239);
-      }
-      .message {
-        padding: 20px;
-        border-radius: 4px;
-        margin-bottom: 40px;
-        max-width: 300px;
-        position: relative;
-      }
-      .incoming {
-        background: darkgrey;
-        color: antiquewhite;
-      }
-      .outgoing {
-        background: floralwhite;
-        color: rgb(25, 139, 239);
-        margin-left: auto;
-      }
-      .message h4 {
-        position: absolute;
-        top: -20px;
-        left: 0;
-        color: #e41212;
-        font-size: 14px;
-      }
-      #currentUser {
-        color: rgb(241, 14, 90);
-        padding-left: 200px;
-        overflow-x: auto;
-      }
-    </style>
-    <script
-      src="https://kit.fontawesome.com/a076d05399.js"
-      crossorigin="anonymous"
-    ></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.1/socket.io.js"></script>
-  </head>
-  <body>
-    <section class="chat_section">
-      <div class="brand">
-        <!-- <img height="40" src="message.png" alt="loading" /> -->
-        <i
-          class="fas fa-comment"
-          style="font-size: 48px; color: rgb(0, 208, 255)"
-        ></i>
-        <h1>Design By KALURAM</h1>
-        <!-- <h1>Hello sir kaha ho app</h1> -->
-       
-          <h2 id="currentUser"></h2>
-       
-      </div>
-      <div class="message_area"></div>
-      <div>
-        <textarea
-          id="textarea"
-          cols="30"
-          rows="1"
-          placeholder="Write a message"
-        ></textarea>
-      </div>
-    </section>
-    <script>
-      var socket = io();
-      let value;
-      let textarea = document.querySelector("#textarea");
-      let messageArea = document.querySelector(".message_area");
-      
-      do {
-        value = prompt("Please enter your name");
-        socket.emit("currentUser",value)
-      } while (!value);
-      // socket.emit("userName",value)
-      function setUserName() {
-        if (document.getElementById("user").value == "") {
-          alert("Please enter your name");
-        } else {
-          socket.emit("setUserName", document.getElementById("user").value);
-        }
-      }
-      textarea.addEventListener("keyup", (event) => {
-        if (event.key == "Enter") {
-          sendMessage(event.target.value);
-        }
-      });
-      function sendMessage(message) {
-        let msg = {
-          user: value,
-          message: message.trim(),
-        };
-        appendMessage(msg, "outgoing");
-        textarea.value = "";
-        scrollToBottom();
-        // Message Send to server
-        socket.emit("message", msg);
-      }
-      function appendMessage(msg, type) {
-        let mainDiv = document.createElement("div");
-        let className = type;
-        mainDiv.classList.add(className, "message");
-        let markup = `
+    });
+    function sendMessage(message) {
+      let msg = {
+        user: value,
+        message: message.trim(),
+      };
+      appendMessage(msg, "outgoing");
+      textarea.value = "";
+      scrollToBottom();
+      // Message Send to server
+      socket.emit("message", msg);
+    }
+    function appendMessage(msg, type) {
+      let mainDiv = document.createElement("div");
+      let className = type;
+      mainDiv.classList.add(className, "message");
+      let markup = `
     <h4>${msg.user}</h4>
     <p>${msg.message}</p>
     `;
-        mainDiv.innerHTML = markup;
-        messageArea.appendChild(mainDiv);
-      }
+      mainDiv.innerHTML = markup;
+      messageArea.appendChild(mainDiv);
+    }
 
-      //   Recieve messages
-      socket.on("newUser", (msg) => {
+    //   Recieve messages
+    socket.on("newUser", (msg) => {
       console.log(msg)
-        appendMessage(msg, "incoming");
-        scrollToBottom();
-      });
-     socket.on("newMsg",(userInfo)=>{
-        console.log(userInfo)
-        if(userInfo){
-          document.getElementById("currentUser").innerHTML=`
-          <div>Welcome <b>${userInfo.userName}</b>  <sup style="color:green">${userInfo.onlineStatus}</sup></div>
+      appendMessage(msg, "incoming");
+      scrollToBottom();
+    });
+    socket.on("newMsg", (userInfo) => {
+      const user = localStorage.getItem("username");
+      if (userInfo) {
+        document.getElementById("currentUser").innerHTML = `
+          <div>Welcome <b>${user}</b><sub><span class="status-circle"></span></sup></div>
           `
-        }
-      })
-      function scrollToBottom() {
-        messageArea.scrollTop = messageArea.scrollHeight;
       }
-    </script>
-  </body>
+    })
+    function scrollToBottom() {
+      messageArea.scrollTop = messageArea.scrollHeight;
+    }
+  </script>
+</body>
+
 </html>
